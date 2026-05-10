@@ -1,0 +1,52 @@
+# ============================================================
+# PRIVATE — these files NEVER go into the public repository
+# ============================================================
+
+# Encrypted key file and its password
+oracle/oracle_key.enc
+oracle/.env
+
+# Any .env file anywhere
+.env
+.env.*
+*.env
+
+# Private key files — any format
+*.key
+*.pem
+*.p12
+*.pfx
+*.enc
+*.secret
+*.private
+*.secrets
+id_rsa
+id_ed25519
+
+# Oracle server — runs privately on the operator's machine, never distributed
+oracle/
+tools/
+
+# Private / operator-only scripts
+launch.sh
+start_oracle.sh
+genesis-start.sh
+fsociety-term.sh
+oracle.log
+*.log
+
+# Private icons (genesis / operator node)
+icon_genesis.png
+icon_terminal.png
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# System
+.DS_Store
+Thumbs.db
