@@ -22,14 +22,13 @@ cat << 'LOGO'
  ╚═╝     ╚═╝╚═╝  ╚═╝      ╚═╝  ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝    ╚═╝
 LOGO
 echo -e "${NC}"
-echo -e "  ${G}$MRRBT AMD-ONLY GPU MINER${NC}"
-echo -e "  ${G}Reward: 9 \$MRRBT per share  ·  10% auto to liquidity fund${NC}"
-echo -e "  ${G}Proof of every payout on Solana mainnet${NC}"
+echo -e "  ${G}\$MRRBT AMD-ONLY GPU MINER${NC}"
+echo -e "  ${G}Mine Ethereum to earn \$MRRBT on Solana — via unMineable${NC}"
+echo -e "  ${G}AMD GPU required (RX 470 / 480 / 570 / 580 / Vega / RDNA)${NC}"
 echo ""
 echo -e "  ──────────────────────────────────────────────────"
 echo ""
 echo -e "  ${CY}Enter your Solana wallet address to receive \$MRRBT rewards.${NC}"
-echo -e "  ${YL}AMD GPU required (RX 470 / 480 / 570 / 580 / Vega / RDNA)${NC}"
 echo ""
 read -p "  Wallet address: " WALLET
 echo ""
@@ -39,16 +38,29 @@ if [ -z "$WALLET" ]; then
     exec bash
 fi
 
-ORACLE_URL="${ORACLE_URL:-http://oracle.mrrobottoken.com:8181}"
-echo -e "  ${G}Wallet : ${BG}${WALLET}${NC}"
-echo -e "  ${G}Oracle : ${ORACLE_URL}${NC}"
+WORKER="${WORKER:-mrrobot}"
+DIFF="${DIFF:-4300}"
+POOL="${POOL:-ethash.unmineable.com:3333}"
+
+echo -e "  ${G}Wallet  : ${BG}${WALLET}${NC}"
+echo -e "  ${G}Pool    : ${POOL}${NC}"
+echo -e "  ${G}Reward  : \$MRRBT (Solana) via unMineable${NC}"
 echo ""
 
-# Collect mining session fee (SOL → auto-swapped to $MRRBT to pump liquidity)
-MINING_FEE_SOL="${MINING_FEE_SOL:-0.002}"
-MINING_FEE_WALLET="${MINING_FEE_WALLET:-GWyaGZgrrd8Le6c9ZS7NtwzmrewFyb3kZHikGtEGTEwj}"
-MINING_FEE_SOL="$MINING_FEE_SOL" MINING_FEE_WALLET="$MINING_FEE_WALLET" \
-    python3 -m miner.fee
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOLMINER="${LOLMINER:-$SCRIPT_DIR/lolMiner}"
 
-python3 -m miner.main --wallet "$WALLET" --oracle "$ORACLE_URL"
-exec bash
+if [[ ! -x "$LOLMINER" ]]; then
+    LOLMINER="$(command -v lolMiner 2>/dev/null)"
+fi
+if [[ -z "$LOLMINER" || ! -x "$LOLMINER" ]]; then
+    echo -e "  ${YL}ERROR: lolMiner not found. Run ./install.sh first.${NC}"
+    exec bash
+fi
+
+exec "$LOLMINER" \
+    --algo ETHASH \
+    --pool "$POOL" \
+    --user "MRRBT:${WALLET}.${WORKER}+${DIFF}" \
+    --pass x \
+    --apiport 10080

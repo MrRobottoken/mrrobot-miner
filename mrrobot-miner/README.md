@@ -10,11 +10,19 @@
 ```
 
 **The first AMD-only GPU miner on Solana.**  
-Mine $MRRBT tokens with your AMD GPU — RX 470, 480, 570, 580, 590, Vega, RDNA.  
-Every valid share earns you $MRRBT directly to your Solana wallet. No registration. No BS.
+Mine Ethereum and earn $MRRBT tokens directly to your Solana wallet — powered by lolMiner and the unMineable pool. No registration. No BS.
 
 > **HiveOS is the recommended platform.** Older AMD GPUs (Polaris / Vega) are fully
 > supported on HiveOS out of the box — no driver wrestling required.
+
+---
+
+## How It Works
+
+1. Your AMD GPU mines Ethereum (Ethash algorithm) via the unMineable pool
+2. unMineable pays you in **$MRRBT** — the rewards go straight to your Solana wallet
+3. Every valid share is verified on-chain; payouts are traceable on Solana Explorer
+4. The miner runs 24/7 with zero dependency on any private server
 
 ---
 
@@ -26,7 +34,8 @@ Every valid share earns you $MRRBT directly to your Solana wallet. No registrati
 | **Network** | Solana Mainnet |
 | **Mint** | `BEKad5PmS5nN9mvnDrPmuctPoaU8V1vVFUp5BQt4pump` |
 | **Platform** | Pump.fun |
-| **Algorithm** | MRH-256 (Memory-Hard SHA-256 + 8 MB scratchpad) |
+| **Mining engine** | lolMiner (Ethash via unMineable) |
+| **Pool** | `ethash.unmineable.com:3333` |
 
 ---
 
@@ -42,8 +51,8 @@ curl -fsSL https://raw.githubusercontent.com/MrRobottoken/mrrobot-miner/main/hiv
 
 This will:
 - Auto-detect your AMD GPUs
-- Install Python dependencies (`pyopencl`, `numpy`, `rich`, `httpx`)
-- Copy all miner files to `/hive/miners/mrrobot/`
+- Download and install lolMiner 1.98a
+- Copy all run/stats scripts to `/hive/miners/mrrobot/`
 
 ### Step 2 — Add a Flight Sheet in Hive
 
@@ -55,13 +64,22 @@ This will:
 |---|---|
 | **Miner name** | `mrrobot` |
 | **Installation URL** | *(leave blank — already installed)* |
-| **Hash algorithm** | `mrh256` |
+| **Hash algorithm** | `ethash` |
 | **Wallet** | *(your Solana wallet address)* |
 | **Extra config** | `WALLET=<your_solana_wallet_address>` |
 
 4. Apply the flight sheet to your rig — that's it.
 
 The miner will appear in your Hive dashboard with live hashrate, temperature, and fan speed per GPU.
+
+### Optional Extra config parameters
+
+```
+WALLET=YourSolanaWalletHere
+WORKER=myrig
+DIFF=4300
+POOL=ethash.unmineable.com:3333
+```
 
 ### Updating
 
@@ -89,8 +107,8 @@ NVIDIA is **not supported** — by design.
 ## Requirements
 
 - **HiveOS** (recommended) — or Ubuntu 20.04+ with `amdgpu-pro` / ROCm drivers
-- **Python 3.8+** (HiveOS includes this; installer handles it if missing)
-- AMD OpenCL support (automatic on HiveOS)
+- AMD GPU (Polaris, Vega, or RDNA)
+- Internet connection (pool mining — no local server needed)
 
 ---
 
@@ -115,54 +133,24 @@ bash public-miner-start.sh
 
 | | |
 |---|---|
-| **Base reward** | 10 $MRRBT per accepted share |
-| **LP multiplier** | 2× with LP tokens |
-| **Liquidity fee** | 10% per share → liquidity fund |
-| **Session fee** | 0.002 SOL → auto-swapped to $MRRBT via Jupiter |
-| **Payout** | Instant, on-chain, verifiable on Solana |
-
-Every session fee is **automatically swapped into $MRRBT** via Jupiter, pumping the Pump.fun bonding curve toward Raydium graduation.
+| **Mining algorithm** | Ethash (Ethereum) |
+| **Reward token** | $MRRBT (Solana) |
+| **Payout** | Automatic via unMineable, on-chain |
+| **Minimum payout** | Set on your unMineable dashboard |
+| **Difficulty** | Fixed at 4300 MH (consistent share rate) |
 
 ---
 
-## How It Works
+## Custom Difficulty
 
-1. Your AMD GPU runs the **MRH-256** algorithm — SHA-256 × 32 rounds over an 8 MB scratchpad
-2. When your GPU finds a valid hash (Proof-of-Work), it submits a share to the Oracle
-3. The Oracle verifies the share on-chain and sends $MRRBT to your wallet in the **same transaction**
-4. Every session fee (0.002 SOL) is swapped → $MRRBT via Jupiter, adding buy pressure to the bonding curve
-5. The 10% liquidity fee accumulates and feeds back into the pool
+The `DIFF` parameter controls share frequency. Default is `4300` (roughly one share every ~150 seconds on an RX 470).
 
----
-
-## Custom Oracle URL
-
-By default the miner connects to `http://oracle.mrrobottoken.com:8181`.  
-To point at a different Oracle:
+Lower values = more shares, smaller rewards each. Higher = fewer shares, larger each.
 
 ```bash
-ORACLE_URL=http://your.oracle.ip:8181 ./mine.sh YOUR_WALLET
+DIFF=2000 ./mine.sh YourWalletHere   # more frequent shares
+DIFF=8000 ./mine.sh YourWalletHere   # less frequent shares
 ```
-
-Or in the HiveOS flight sheet Extra config:
-
-```
-WALLET=YourWalletHere
-ORACLE_URL=http://your.oracle.ip:8181
-```
-
----
-
-## Dashboard
-
-The miner shows a live terminal dashboard with:
-
-- Per-GPU hashrate, temperature, power draw, shares found
-- Network difficulty, active miners, uptime
-- Treasury balance and auto-buyback stats
-- Recent shares with Solana TX signatures (proof of every payout)
-
-On HiveOS, stats feed into the Hive dashboard automatically via `h-stats.sh`.
 
 ---
 
